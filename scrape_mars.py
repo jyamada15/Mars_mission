@@ -15,7 +15,7 @@ def scrape_all():
     executable_path = {'executable_path': "C:\\Users\\Jeff\\Documents\\BootCamp\\HW\\HW13\\Resources\\chromedriver.exe"}
     browser = Browser('chrome', **executable_path,headless=False)
     news_title, news_paragraph = mars_news(browser)
-    featured_image_url,featured_image_desc = featured_image(browser)
+    featured_image, featured_image_desc = featured_images(browser)
 
     data = {
         "news_title": news_title,
@@ -23,7 +23,7 @@ def scrape_all():
         "featured_image": featured_image,
         "featured_image_desc":featured_image_desc,
         "weather": twitter_weather(browser),
-        "hemispheres": hemispheres(browser),
+        "hemisphere": hemisphere(browser),
         "facts": mars_facts(browser),
     }
     browser.quit()
@@ -45,7 +45,7 @@ def mars_news(browser):
 
 
 
-def featured_image(browser):
+def featured_images(browser):
 
     url = 'https://www.jpl.nasa.gov/spaceimages/?search=&category=Mars'
     browser.visit(url)
@@ -63,13 +63,12 @@ def featured_image(browser):
 
     str_fb = str(featured_button)
 
-    img_string = re.findall(r'data-fancybox-href="(.*?)" data-title',str_fb)
-    print(img_string)
+    img_string = re.findall(r'data-fancybox-href="(.*?)"',str_fb)
     string_form_of_link = ''.join(img_string)
-    featured_image_url = ('https://www.jpl.nasa.gov' + string_form_of_link)
-    #print(featured_image_url)
+    featured_image = ('https://www.jpl.nasa.gov' + string_form_of_link)
 
-    return featured_image_url, featured_image_desc
+
+    return featured_image, featured_image_desc
 
 
 def twitter_weather(browser):
@@ -130,7 +129,7 @@ def mars_facts(browser):
     return mf_pd.to_html(classes = "table table-striped")
 
 
-def hemispheres(browser):
+def hemisphere(browser):
     url = 'https://astrogeology.usgs.gov/search/results?q=hemisphere+enhanced&k1=target&v1=Mars'
     base_url = 'https://astrogeology.usgs.gov'
     browser.visit(url)
@@ -151,21 +150,24 @@ def hemispheres(browser):
         
     # hemisphere_links 
 
-
+    hemisphere_title = []
+    hemisphere_url = []
     for link in range(len(hemisphere_links)):
-        hemisphere_dict = {}
         new_url = base_url+hemisphere_links[link]
         browser.visit(new_url)
         sample_img= browser.find_link_by_text('Sample').first
-        hemisphere_dict['img_url'] = sample_img['href']
+        hemisphere_url.append(sample_img['href'])
         
         html = browser.html
         soup = bs(html,'html.parser')
         title=soup.find('h2', class_='title').text.strip()
-        hemisphere_dict['title'] = title
-        hemisphere_image_urls.append(hemisphere_dict)
-        browser.visit(url)    
-        
+        hemisphere_title.append(title)
+        browser.visit(url)  
+
+    hemisphere_dict = {
+        "title": hemisphere_title,
+        "img_url": hemisphere_url   
+    }    
     # hemisphere_image_urls
 
     return hemisphere_dict
